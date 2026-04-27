@@ -2,8 +2,9 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { GoogleAIFileManager } = require('@google/generative-ai/server');
 require('dotenv').config({ path: '.env.local' });
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY);
+const API_KEY = process.env.GEMINI_API_KEYS.split(',')[2];
+const genAI = new GoogleGenerativeAI(API_KEY);
+const fileManager = new GoogleAIFileManager(API_KEY);
 
 async function extractIndex() {
   try {
@@ -18,14 +19,14 @@ async function extractIndex() {
     
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
     
-    const prompt = `Read the entire PDF Application Catalogue. Extract the Table of Contents or Application Index for supported vehicles. 
-    You must output ONLY a valid, strict JSON array representing the exact brands and main models listed inside the catalogue. 
+    const prompt = `Read the entire PDF Application Catalogue. Extract the detailed Table of Contents or Application Index for supported vehicles. 
+    You must output ONLY a valid, strict JSON array representing the exact brands, models, AND specific GENERATIONS/YEARS listed inside the catalogue under each model.
     Format example:
     [
-      { "brand": "Toyota", "models": ["Hilux", "Land Cruiser 70", "4Runner"] }
+      { "brand": "Toyota", "models": [{ "name": "Hilux", "years": ["2015-Onwards", "2005-2015"] }] }
     ]
-    Do not invent or add generic models. Only include exactly what is found in the catalogue. Limit models to the major sub-categories to avoid an excessively large array.
-    Do not supply any other text, markdown, or backticks. Output valid JSON only.`;
+    Include the exact string headers for generations/years found in the catalogue. 
+    Do not supply any other text, markdown, or backticks. Output absolute valid JSON only starting with [ and ending with ].`;
 
     const parts = [
       { fileData: { mimeType: "application/pdf", fileUri: uploadResult.file.uri } },

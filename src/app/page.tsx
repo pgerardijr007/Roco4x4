@@ -30,20 +30,77 @@ export default function Home() {
   
   // Tabbed Index States
   const [rightTab, setRightTab] = useState<'index' | 'cart'>('index');
-  const [openIndex, setOpenIndex] = useState<string | null>(null);
-  const toggleIndex = (brand: string) => setOpenIndex(prev => prev === brand ? null : brand);
+  const [openBrand, setOpenBrand] = useState<string | null>(null);
+  const [openModel, setOpenModel] = useState<string | null>(null);
+  const toggleBrand = (brand: string) => { setOpenBrand(prev => prev === brand ? null : brand); setOpenModel(null); };
+  const toggleModel = (model: string) => setOpenModel(prev => prev === model ? null : model);
 
   const vehicleIndex = [
-    { brand: 'Toyota', models: ['Hilux', 'Land Cruiser', 'Prado', 'Tacoma', 'Tundra', '4Runner'] },
-    { brand: 'Ford', models: ['Courier', 'Ranger', 'Bronco', 'Everest', 'F-150'] },
-    { brand: 'Nissan', models: ['Navara', 'Pathfinder', 'Patrol'] },
-    { brand: 'Holden/Isuzu/GM', models: ['Jackaroo', 'Rodeo', 'D-MAX', 'Colorado', 'MU-X', 'Trailblazer'] },
-    { brand: 'Jeep', models: ['Cherokee', 'Wrangler', 'Commander'] },
-    { brand: 'Mitsubishi', models: ['Pajero', 'Triton'] },
-    { brand: 'Land Rover', models: ['Defender', 'Discovery', 'Range Rover'] },
-    { brand: 'Suzuki', models: ['Sierra', 'Jimny', 'Vitara'] },
-    { brand: 'GWM', models: ['Tank 300'] },
-    { brand: 'Volkswagen', models: ['Amarok'] }
+    { 
+      brand: 'Toyota', 
+      models: [
+        { name: 'Hilux', years: ['2015-Onwards', '2005-2015', '1997-2005'] },
+        { name: 'Land Cruiser', years: ['300 Series', '200 Series', '100 Series', '79 Series V8', '70 Series Pre-V8'] },
+        { name: 'Prado', years: ['150 Series', '120 Series', '90 Series'] },
+        { name: 'Tacoma', years: ['2016-Onwards', '2005-2015'] },
+        { name: 'Tundra', years: ['2022-Onwards', '2007-2021'] },
+        { name: '4Runner', years: ['2010-Onwards (5th Gen)', '2003-2009 (4th Gen)'] }
+      ] 
+    },
+    { 
+      brand: 'Ford', 
+      models: [
+        { name: 'Ranger', years: ['Next-Gen (2022-Onwards)', 'PX3 (2018-2022)', 'PX2 (2015-2018)', 'PX (2011-2015)'] },
+        { name: 'Everest', years: ['Next-Gen (2022-Onwards)', 'UA (2015-2022)'] },
+        { name: 'Bronco', years: ['2021-Onwards'] },
+        { name: 'F-150', years: ['2021-Onwards', '2015-2020'] }
+      ] 
+    },
+    { 
+      brand: 'Nissan', 
+      models: [
+        { name: 'Navara', years: ['NP300 / D23', 'D40', 'D22'] },
+        { name: 'Patrol', years: ['Y62', 'GU / Y61', 'GQ / Y60'] },
+        { name: 'Pathfinder', years: ['R51', 'R50'] }
+      ] 
+    },
+    { 
+      brand: 'Jeep', 
+      models: [
+        { name: 'Wrangler', years: ['JL', 'JK', 'TJ'] },
+        { name: 'Gladiator', years: ['JT'] },
+        { name: 'Grand Cherokee', years: ['WK2', 'WJ'] }
+      ] 
+    },
+    { 
+      brand: 'Mitsubishi', 
+      models: [
+        { name: 'Triton', years: ['MR (2019+)', 'MQ (2015-2018)', 'MN/ML'] },
+        { name: 'Pajero', years: ['NX/NW/NT (2007+)', 'NM/NP'] },
+        { name: 'Pajero Sport', years: ['QE/QF (2015+)'] }
+      ] 
+    },
+    { 
+      brand: 'Holden/Isuzu', 
+      models: [
+        { name: 'D-MAX', years: ['RG (2020+)', 'RT (2012-2019)'] },
+        { name: 'MU-X', years: ['RJ (2021+)', 'RF (2013-2020)'] },
+        { name: 'Colorado', years: ['RG (2012-2020)', 'RC (2008-2012)'] }
+      ] 
+    },
+    { 
+      brand: 'Land Rover', 
+      models: [
+        { name: 'Defender', years: ['L663 (2020+)', 'Traditional (Pre-2016)'] },
+        { name: 'Discovery', years: ['Discovery 4', 'Discovery 3'] }
+      ] 
+    },
+    { 
+      brand: 'Volkswagen', 
+      models: [
+        { name: 'Amarok', years: ['NF (2023+)', 'Original (2010-2022)'] }
+      ] 
+    }
   ];
 
   // Load database on mount
@@ -369,15 +426,26 @@ export default function Home() {
             <div className="accordion-list">
               {vehicleIndex.map(v => (
                 <div key={v.brand} className="accordion-item">
-                  <div className="accordion-header" onClick={() => toggleIndex(v.brand)}>
+                  <div className="accordion-header" onClick={() => toggleBrand(v.brand)}>
                     <span>{v.brand}</span>
-                    <span>{openIndex === v.brand ? '−' : '+'}</span>
+                    <span>{openBrand === v.brand ? '−' : '+'}</span>
                   </div>
-                  {openIndex === v.brand && (
+                  {openBrand === v.brand && (
                     <div className="accordion-body">
-                      {v.models.map(m => (
-                         <div key={m} className="accordion-row" onClick={() => executeSearch(`show me parts for ${v.brand} ${m}`)}>
-                           <span className="arrow">↳</span> {m}
+                      {v.models.map((m, mIdx) => (
+                         <div key={mIdx}>
+                           <div className="accordion-row" onClick={() => m.years ? toggleModel(m.name) : executeSearch(`show me parts for ${v.brand} ${m.name}`)}>
+                             <span className="arrow">{m.years && openModel === m.name ? '▼' : '↳'}</span> {m.name}
+                           </div>
+                           {m.years && openModel === m.name && (
+                             <div className="accordion-body" style={{ paddingLeft: '1.5rem', background: 'rgba(0,0,0,0.2)', borderLeft: '2px solid #2d2d2d' }}>
+                               {m.years.map((y, yIdx) => (
+                                 <div key={yIdx} className="accordion-row" onClick={() => executeSearch(`show me parts for ${v.brand} ${m.name} ${y}`)} style={{ fontSize: '0.85rem', color: '#90CAF9', padding: '8px 12px' }}>
+                                   <span style={{opacity: 0.5}}>-</span> {y}
+                                 </div>
+                               ))}
+                             </div>
+                           )}
                          </div>
                       ))}
                     </div>

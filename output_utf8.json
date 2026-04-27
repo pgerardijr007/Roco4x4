@@ -1,0 +1,127 @@
+﻿Γùç injected env (2) from .env.local // tip: Γùê secrets for agents [www.dotenvx.com]
+Uploading PDF to Gemini...
+PDF Uploaded. URI: https://generativelanguage.googleapis.com/v1beta/files/mimd8hwa71fg
+Analyzing 325-page PDF for Exact Index...
+
+--- RESULT ---
+```json
+[
+  {
+    "brand": "Daihatsu",
+    "models": [
+      "Feroza",
+      "Rocky"
+    ]
+  },
+  {
+    "brand": "Ford",
+    "models": [
+      "Courier",
+      "Ranger",
+      "Bronco",
+      "Everest",
+      "F-150"
+    ]
+  },
+  {
+    "brand": "GWM",
+    "models": [
+      "Tank 300"
+    ]
+  },
+  {
+    "brand": "Holden / Isuzu / GM",
+    "models": [
+      "Jackaroo / Trooper",
+      "Jackaroo",
+      "Rodeo",
+      "D-MAX",
+      "Colorado / Canyon",
+      "MU-X",
+      "Trailblazer"
+    ]
+  },
+  {
+    "brand": "Jeep",
+    "models": [
+      "Cherokee / Liberty",
+      "Wrangler",
+      "Commander"
+    ]
+  },
+  {
+    "brand": "Land Rover",
+    "models": [
+      "Defender",
+      "Discovery",
+      "Range Rover"
+    ]
+  },
+  {
+    "brand": "Mazda",
+    "models": [
+      "BT-50",
+      "Challenger / Montero Sport",
+      "Pajero / Montero"
+    ]
+  },
+  {
+    "brand": "Mercedes-Benz",
+    "models": [
+      "G-WAGON"
+    ]
+  },
+  {
+    "brand": "Mitsubishi",
+    "models": [
+      "Pajero Sport",
+      "Triton / L200"
+    ]
+  },
+  {
+    "brand": "Nissan",
+    "models": [
+      "Navara",
+      "Pathfinder",
+      "Patrol"
+    ]
+  },
+  {
+    "brand": "SsangYong",
+    "models": [
+      "Musso",
+      "Rexton",
+      "Korando",
+      "Korando",
+      "Musso",
+      "Rexton"
+    ]
+  },
+  {
+    "brand": "Suzuki",
+    "models": [
+      "Sierra / Samurai",
+      "Jimny",
+      "Vitara Wagon",
+      "Vitara SWB"
+    ]
+  },
+  {
+    "brand": "Toyota",
+    "models": [
+      "Hilux",
+      "Land Cruiser",
+      "Prado",
+      "Tacoma",
+      "Tundra",
+      "4Runner"
+    ]
+  },
+  {
+    "brand": "Volkswagen",
+    "models": [
+      "Amarok"
+    ]
+  }
+]
+```
