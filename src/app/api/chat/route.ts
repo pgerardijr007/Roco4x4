@@ -60,57 +60,59 @@ CRITICAL PDF HALLUCINATION PREVENTION:
         } catch (apiError: any) {
             const errString = String(apiError.message || apiError);
             
-            // Branch A: Quota Exhaustion -> Discard logic and shift to subsequent keys natively via continued loop
-            if (errString.includes('429')) {
-                console.warn(`[Drive Loop] API Key Index [${i}] exhausted (429). Shifting parameter logic to Key [${i+1}]...`);
-                lastError = apiError;
-                continue; // Skip the Catch Phase -> Reruns using next key mathematically!
-            }
-            
             // Branch B: Permission or File API Timeout -> File URIs do not cross accounts! Cross-Account Healer Sequence Required!
             if (errString.includes('400') || errString.includes('403') || errString.includes('404') || errString.includes('not exist') || errString.includes('fileUri')) {
                 console.warn(`[Drive Loop] Index [${i}] threw File URI restriction. Triggering Supabase Cloud Healer override...`);
                 
-                const fileManager = new GoogleAIFileManager(currentKey);
-                
-                // Fetch the master asset out of Supabase to physically bypass local limits natively 
-                const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ijtkbisxyoondehvcqza.supabase.co';
-                const supabasePdfUrl = `${supabaseUrl}/storage/v1/object/public/roco-assets/OME_Catalogue.pdf`;
-                const tmpPath = "/tmp/ome_catalogue.pdf";
-                
-                const pdfRes = await fetch(supabasePdfUrl);
-                if(!pdfRes.ok) throw new Error("Could not download PDF from Supabase! Is it missing from 'roco-assets'?");
-                
-                const buffer = await pdfRes.arrayBuffer();
-                fs.writeFileSync(tmpPath, Buffer.from(buffer));
-                
-                if (fs.existsSync(tmpPath)) {
-                  const uploadResult = await fileManager.uploadFile(tmpPath, {
-                      mimeType: "application/pdf",
-                      displayName: `OME Application Catalogue 2025 (Cloud Node - Key ${i})`,
-                  });
-                  console.log(`Auto-Recovery Successful on Key [${i}]. New Semantic URI: ${uploadResult.file.uri}`);
-                  
-                  // Re-cache for future node execution hits
-                  runtimeUriCache = uploadResult.file.uri;
-                  
-                  if (parts[0].fileData) {
-                      parts[0].fileData.fileUri = runtimeUriCache;
-                  } else {
-                      parts.unshift({ fileData: { mimeType: "application/pdf", fileUri: runtimeUriCache } });
-                  }
-                  
-                  // Secondary attempt generated native to the valid key
-                  const result = await model.generateContent(parts);
-                  content = result.response.text();
-                  fallbackSuccess = true;
-                  break; 
-                } else {
-                  throw new Error("Cloud Temp File Write failed during Auto-Recovery attempt.");
+                try {
+                    const fileManager = new GoogleAIFileManager(currentKey);
+                    
+                    // Fetch the master asset out of Supabase to physically bypass local limits natively 
+                    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ijtkbisxyoondehvcqza.supabase.co';
+                    const supabasePdfUrl = `${supabaseUrl}/storage/v1/object/public/roco-assets/OME_Catalogue.pdf`;
+                    const tmpPath = "/tmp/ome_catalogue.pdf";
+                    
+                    const pdfRes = await fetch(supabasePdfUrl);
+                    if(!pdfRes.ok) throw new Error("Could not download PDF from Supabase! Is it missing from 'roco-assets'?");
+                    
+                    const buffer = await pdfRes.arrayBuffer();
+                    fs.writeFileSync(tmpPath, Buffer.from(buffer));
+                    
+                    if (fs.existsSync(tmpPath)) {
+                      const uploadResult = await fileManager.uploadFile(tmpPath, {
+                          mimeType: "application/pdf",
+                          displayName: `OME Application Catalogue 2025 (Cloud Node - Key ${i})`,
+                      });
+                      console.log(`Auto-Recovery Successful on Key [${i}]. New Semantic URI: ${uploadResult.file.uri}`);
+                      
+                      // Re-cache for future node execution hits
+                      runtimeUriCache = uploadResult.file.uri;
+                      
+                      if (parts[0].fileData) {
+                          parts[0].fileData.fileUri = runtimeUriCache;
+                      } else {
+                          parts.unshift({ fileData: { mimeType: "application/pdf", fileUri: runtimeUriCache } });
+                      }
+                      
+                      // Secondary attempt generated native to the valid key
+                      const result = await model.generateContent(parts);
+                      content = result.response.text();
+                      fallbackSuccess = true;
+                      break; 
+                    } else {
+                      throw new Error("Cloud Temp File Write failed during Auto-Recovery attempt.");
+                    }
+                } catch (healerError: any) {
+                    console.warn(`[Drive Loop] Healer sequence failed on Key [${i}] (likely 429 quota exhaustion). Shifting... :`, healerError.message);
+                    lastError = healerError;
+                    continue; // Skip to next key gracefully!
                 }
+            } else {
+                // Branch A: Immediate Quota Exhaustion (429) -> Shift to subsequent key natively
+                console.warn(`[Drive Loop] API Key Index [${i}] failed (429/Other). Shifting parameter logic to Key [${i+1}]...`);
+                lastError = apiError;
+                continue; // Skip the Catch Phase -> Reruns using next key mathematically!
             }
-            
-            throw apiError;
         }
     }
     
