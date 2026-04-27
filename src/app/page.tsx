@@ -289,7 +289,12 @@ export default function Home() {
             setMessages(prev => [...prev, { sender: 'bot', text: 'Cloud Admin: Success! New Master Catalogue securely encrypted to Supabase. Live for all users immediately!' }]);
             setInputValue('');
         } else {
-            throw new Error(`Server Backend Admin Blocked Payload.`);
+            let errorTxt = APIres.statusText;
+            try {
+                const errorData = await APIres.json();
+                if (errorData.error) errorTxt = errorData.error;
+            } catch (e) {}
+            throw new Error(`Server Rejected: ${APIres.status} HTTP Status -> ${errorTxt}`);
         }
       } catch(err) {
         console.error(err);
