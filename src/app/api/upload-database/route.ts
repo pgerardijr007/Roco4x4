@@ -3,10 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(req: Request) {
   try {
-    const data = await req.json();
+    const rawJsonText = await req.text();
     
-    // Validate payload
-    if (!Array.isArray(data) || data.length === 0) {
+    if (!rawJsonText || rawJsonText.length < 50) {
       return NextResponse.json({ error: "Invalid database structure sent to server." }, { status: 400 });
     }
 
@@ -18,7 +17,7 @@ export async function POST(req: Request) {
     // Secure Backend Client (Bypasses RLS limits)
     const supabaseAdmin = createClient(supabaseUrl, serviceKey);
 
-    const fileBlob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    const fileBlob = new Blob([rawJsonText], { type: 'application/json' });
     
     const { error } = await supabaseAdmin
         .storage
@@ -27,7 +26,7 @@ export async function POST(req: Request) {
 
     if (error) throw new Error(`Supabase Admin Upsert Denied: ${error.message}`);
 
-    return NextResponse.json({ success: true, count: data.length });
+    return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("Database Save Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
