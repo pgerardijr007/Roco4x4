@@ -434,13 +434,13 @@ export default function Home() {
                     <div className="accordion-body">
                       {v.models.map((m, mIdx) => (
                          <div key={mIdx}>
-                           <div className="accordion-row" onClick={() => m.years ? toggleModel(m.name) : executeSearch(`show me parts for ${v.brand} ${m.name}`)}>
+                           <div className="accordion-row" onClick={() => m.years ? toggleModel(m.name) : executeSearch(`Provide a full structural parts list for the ${v.brand} ${m.name}`)}>
                              <span className="arrow">{m.years && openModel === m.name ? '▼' : '↳'}</span> {m.name}
                            </div>
                            {m.years && openModel === m.name && (
                              <div className="accordion-body" style={{ paddingLeft: '1.5rem', background: 'rgba(0,0,0,0.2)', borderLeft: '2px solid #2d2d2d' }}>
                                {m.years.map((y, yIdx) => (
-                                 <div key={yIdx} className="accordion-row" onClick={() => executeSearch(`show me parts for ${v.brand} ${m.name} ${y}`)} style={{ fontSize: '0.85rem', color: '#90CAF9', padding: '8px 12px' }}>
+                                 <div key={yIdx} className="accordion-row" onClick={() => executeSearch(`Provide a full structural parts list and suspension subsets for the ${v.brand} ${m.name} ${y} generation`)} style={{ fontSize: '0.85rem', color: '#90CAF9', padding: '8px 12px' }}>
                                    <span style={{opacity: 0.5}}>-</span> {y}
                                  </div>
                                ))}
