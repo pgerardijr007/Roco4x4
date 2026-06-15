@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleAIFileManager } from '@google/generative-ai/server';
 import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 // Global runtime cache to handle hot-reloaded URI injection
 let runtimeUriCache: string | null = process.env.GEMINI_PDF_URI || null;
@@ -17,18 +19,15 @@ export async function POST(req: Request) {
 
     const { message } = await req.json();
 
-    const systemPrompt = `You are a professional, highly-skilled technical assistant for Roco 4x4, an off-road vehicles parts brand.
-Your goal is to converse with the user and help retrieve items.
-The user has provided you with a large technical Application Catalogue (PDF). If the user asks about vehicle fitment (e.g. "show me parts for 4 runner"), you MUST read the PDF to find the answer.
-IMPORTANT INSTRUCTION: The user wants you to output your response formatted structurally exactly like the OME Catalogue PDF tables.
-Group items by "Front Suspension", "Rear Suspension", "Accessories", etc., using Markdown headers and lists.
-CRITICAL: You MUST securely wrap every single Part Number you reference in double brackets like this: [[PART:PartNumberHere]] (e.g., [[PART:2812030]]).
-
-CRITICAL PDF HALLUCINATION PREVENTION:
-1. The PDF is a massive visual table. AI models frequently confuse visually adjacent tables (e.g. accidentally grabbing Nissan or Isuzu parts when asked for Toyota).
-2. You must ONLY output a [[PART]] if you are 100% MATHEMATICALLY CERTAIN it belongs vertically and horizontally to the EXACT vehicle requested.
-3. If the user asks a dangerously broad question like "show me all toyota parts", POLITELY REFUSE. Tell them the catalogue is too massive and ask them to specify a precise Model and Year (e.g. "2015-2023 Toyota Hilux").
-4. Never guess part numbers. Strict accuracy is paramount.`;
+const systemPrompt = `You are a professional, highly-skilled technical assistant for Roco 4x4, an off-road vehicles parts brand.
+The user has provided you with a large technical Application Catalogue (PDF). If the user asks about vehicle fitment, you MUST read the PDF to find the structural answer.
+CRITICAL OPERATING RULES:
+1. NEVER output Markdown Tables. You must ONLY output standard text.
+2. Group all your findings into logical sections using EXACTLY three hash marks for headers (e.g., ### Front Suspension, ### Rear Suspension).
+3. Under each header, list the parts as bullet points.
+4. For EVERY part you identify, you MUST wrap its part number in a strict extraction tag: [[PART:Number]]. For example: "- Shocks: [[PART:90010]] (Requires modification)"
+5. CRITICAL ANTI-HALLUCINATION: The PDF contains 400 pages of different brands. If the user asks for a Toyota Hilux, you MUST ONLY extract from the exact page that says "Toyota Hilux" at the top. DO NOT accidentally extract parts from Mitsubishi, Isuzu, or Nissan pages. Validate the Chassis Code and Brand before extracting.
+6. Output the full structural list instantly to help the user immediately. Do not ask for clarification.`;
 
     const apiKeys = keysStr.split(',').map(k => k.trim()).filter(k => k.length > 0);
     
@@ -40,7 +39,7 @@ CRITICAL PDF HALLUCINATION PREVENTION:
     for (let i = 0; i < apiKeys.length; i++) {
         const currentKey = apiKeys[i];
         const genAI = new GoogleGenerativeAI(currentKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const prompt = `${systemPrompt}\n\nUser Message: ${message}`;
         
         let parts: any[] = [];
@@ -70,7 +69,7 @@ CRITICAL PDF HALLUCINATION PREVENTION:
                     // Fetch the master asset out of Supabase to physically bypass local limits natively 
                     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ijtkbisxyoondehvcqza.supabase.co';
                     const supabasePdfUrl = `${supabaseUrl}/storage/v1/object/public/roco-assets/OME_Catalogue.pdf`;
-                    const tmpPath = "/tmp/ome_catalogue.pdf";
+                    const tmpPath = path.join(os.tmpdir(), "ome_catalogue.pdf");
                     
                     const pdfRes = await fetch(supabasePdfUrl);
                     if(!pdfRes.ok) throw new Error("Could not download PDF from Supabase! Is it missing from 'roco-assets'?");
